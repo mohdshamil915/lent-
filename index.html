@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friend Money Tracker - AI Workshop App</title>
+    <meta name="description" content="A smart digital tracker for college students to manage loans, repayments, reminders, and AI financial insights.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- APP CONTAINER -->
+    <div class="app-container">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>Friend<span>Money</span></h2>
+                    <span class="badge-ai"><i class="fa-solid fa-sparkles"></i> AI Powered</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="dashboard-tab">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span data-i18n="nav_dashboard">Dashboard</span>
+                </button>
+                <button class="nav-btn" data-tab="loans-tab">
+                    <i class="fa-solid fa-users-rectangle"></i>
+                    <span data-i18n="nav_loans">Loans & Friends</span>
+                </button>
+                <button class="nav-btn" data-tab="reminders-tab">
+                    <i class="fa-solid fa-bell"></i>
+                    <span data-i18n="nav_reminders">Reminders</span>
+                    <span class="nav-badge" id="overdue-badge">0</span>
+                </button>
+                <button class="nav-btn" data-tab="ai-tab">
+                    <i class="fa-solid fa-robot"></i>
+                    <span data-i18n="nav_ai">AI Assistant</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="theme-toggle" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                    <i class="fa-solid fa-moon dark-icon"></i>
+                    <i class="fa-solid fa-sun light-icon"></i>
+                    <span class="theme-text" data-i18n="theme_dark">Dark Mode</span>
+                </div>
+                
+                <button class="btn-secondary btn-sm full-width" id="about-project-btn">
+                    <i class="fa-solid fa-circle-info"></i> <span data-i18n="btn_about">About Project (AI)</span>
+                </button>
+
+                <button class="btn-secondary btn-sm full-width" id="export-import-btn">
+                    <i class="fa-solid fa-database"></i> <span data-i18n="btn_backup">Backup & Restore</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            
+            <!-- TOP BAR -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-toggle" id="mobile-toggle-btn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1 id="page-title" data-i18n="title_dashboard">Dashboard Overview</h1>
+                        <p class="subtitle" id="page-subtitle" data-i18n="subtitle_dashboard">Track money lent, repayments, and overdue balances</p>
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    <!-- LANGUAGE TOGGLE -->
+                    <div class="lang-selector">
+                        <i class="fa-solid fa-globe"></i>
+                        <select id="lang-toggle-select" title="Switch Language">
+                            <option value="en">English</option>
+                            <option value="ml">മലയാളം (Malayalam)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-primary" id="open-add-modal-btn">
+                        <i class="fa-solid fa-plus"></i>
+                        <span data-i18n="btn_add_loan">Add Loan</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB CONTENTS -->
+            <div class="tab-container">
+
+                <!-- 1. DASHBOARD TAB -->
+                <section class="tab-content active" id="dashboard-tab">
+                    
+                    <!-- SUMMARY STAT CARDS (6 Cards) -->
+                    <div class="stats-grid">
+                        <div class="stat-card lent">
+                            <div class="stat-icon"><i class="fa-solid fa-hand-holding-hand"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" data-i18n="stat_total_lent">Total Money Lent</span>
+                                <h3 class="stat-value" id="stat-total-lent">₹0</h3>
+                            </div>
+                        </div>
+
+                        <div class="stat-card received">
+                            <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" data-i18n="stat_total_repaid">Total Repaid</span>
+                                <h3 class="stat-value" id="stat-total-received">₹0</h3>
+                            </div>
+                        </div>
+
+                        <div class="stat-card owed">
+                            <div class="stat-icon"><i class="fa-solid fa-scale-unbalanced"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" data-i18n="stat_outstanding">Outstanding Amount</span>
+                                <h3 class="stat-value" id="stat-total-owed">₹0</h3>
+                            </div>
+                        </div>
+
+                        <div class="stat-card debtors">
+                            <div class="stat-icon"><i class="fa-solid fa-user-group"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" data-i18n="stat_debtors_count">Friends Who Owe</span>
+                                <h3 class="stat-value" id="stat-active-debtors">0</h3>
+                            </div>
+                        </div>
+
+                        <div class="stat-card overdue">
+                            <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" data-i18n="stat_overdue_amt">Overdue Amount</span>
+                                <h3 class="stat-value text-danger" id="stat-overdue-amount">₹0</h3>
+                            </div>
+                        </div>
+
+                        <div class="stat-card upcoming">
+                            <div class="stat-icon"><i class="fa-solid fa-calendar-day"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" data-i18n="stat_upcoming_count">Upcoming Repayments</span>
+                                <h3 class="stat-value" id="stat-upcoming-count">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI QUICK INSIGHT BANNER -->
+                    <div class="ai-quick-banner" id="ai-quick-insight-banner">
+                        <div class="ai-banner-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                        <div class="ai-banner-text">
+                            <h4 id="ai-banner-headline">AI Money Insights</h4>
+                            <p id="ai-banner-detail">Analyzing stored loan records to provide smart financial recommendations.</p>
+                        </div>
+                        <button class="btn-outline-sm" data-tab-switch="ai-tab">Open AI Insights &rarr;</button>
+                    </div>
+
+                    <!-- CHARTS & OVERDUE LIST GRID -->
+                    <div class="dashboard-grid">
+                        
+                        <!-- CHART 1: STATUS DISTRIBUTION -->
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-chart-pie"></i> <span data-i18n="chart_status">Loan Status Breakdown</span></h3>
+                            </div>
+                            <div class="card-body chart-wrapper">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- CHART 2: TOP OWED FRIENDS -->
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-chart-bar"></i> <span data-i18n="chart_debtors">Top Outstanding Balances</span></h3>
+                            </div>
+                            <div class="card-body chart-wrapper">
+                                <canvas id="debtorsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- RECENT TRANSACTIONS / OVERDUE HIGHLIGHT -->
+                        <div class="card full-width-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-clock"></i> <span data-i18n="title_urgent">Urgent Overdue & Upcoming Repayments</span></h3>
+                                <button class="btn-text" data-tab-switch="reminders-tab" data-i18n="btn_view_all_reminders">View All Reminders</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="urgent-list" id="dashboard-urgent-list">
+                                    <!-- Dynamic content -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+
+                <!-- 2. LOANS & FRIENDS TAB -->
+                <section class="tab-content" id="loans-tab">
+                    
+                    <!-- FILTER & SEARCH BAR -->
+                    <div class="filter-bar card">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" placeholder="Search by friend's name or reason..." data-i18n-ph="ph_search">
+                            <button class="clear-btn" id="clear-search-btn" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+
+                        <div class="filter-options">
+                            <div class="filter-group">
+                                <label for="status-filter"><i class="fa-solid fa-filter"></i> <span data-i18n="lbl_status">Status:</span></label>
+                                <select id="status-filter">
+                                    <option value="ALL">All Loans</option>
+                                    <option value="UNPAID">All Unpaid Loans</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Partially Paid">Partially Paid</option>
+                                    <option value="Overdue">Overdue Only</option>
+                                    <option value="Paid">Paid Only</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <label for="sort-by"><i class="fa-solid fa-arrow-down-short-wide"></i> <span data-i18n="lbl_sort">Sort By:</span></label>
+                                <select id="sort-by">
+                                    <option value="newest">Date Lent (Newest)</option>
+                                    <option value="oldest">Date Lent (Oldest)</option>
+                                    <option value="dueDate">Due Date (Earliest)</option>
+                                    <option value="amountHigh">Remaining Amount (High to Low)</option>
+                                    <option value="amountLow">Remaining Amount (Low to High)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LOANS GRID -->
+                    <div class="loans-grid" id="loans-cards-container">
+                        <!-- Dynamic loan cards rendered here -->
+                    </div>
+
+                    <!-- EMPTY STATE -->
+                    <div class="empty-state" id="empty-loans-state" style="display:none;">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <h3 data-i18n="empty_title">No loans found</h3>
+                        <p data-i18n="empty_desc">There are no loans matching your search or filter options. Add a new loan to get started!</p>
+                        <button class="btn-primary" id="empty-add-loan-btn">
+                            <i class="fa-solid fa-plus"></i> <span data-i18n="btn_add_loan">Add First Loan</span>
+                        </button>
+                    </div>
+
+                </section>
+
+
+                <!-- 3. REMINDERS TAB -->
+                <section class="tab-content" id="reminders-tab">
+                    
+                    <div class="reminders-container">
+                        
+                        <!-- OVERDUE SECTION -->
+                        <div class="reminder-section">
+                            <div class="section-title text-danger">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <h2 data-i18n="title_overdue_section">Overdue Repayments</h2>
+                                <span class="badge badge-danger" id="count-overdue-badge">0</span>
+                            </div>
+                            <div class="reminders-list" id="overdue-reminders-list">
+                                <!-- Dynamic overdue cards -->
+                            </div>
+                        </div>
+
+                        <!-- UPCOMING SECTION -->
+                        <div class="reminder-section">
+                            <div class="section-title text-warning">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <h2 data-i18n="title_upcoming_section">Upcoming Repayments (Next 7 Days)</h2>
+                                <span class="badge badge-warning" id="count-upcoming-badge">0</span>
+                            </div>
+                            <div class="reminders-list" id="upcoming-reminders-list">
+                                <!-- Dynamic upcoming cards -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- 4. AI ASSISTANT TAB ("MONEY INSIGHTS") -->
+                <section class="tab-content" id="ai-tab">
+                    
+                    <div class="ai-layout">
+                        
+                        <!-- LEFT COLUMN: AI INSIGHTS & REMINDER GENERATOR -->
+                        <div class="ai-left-col">
+                            
+                            <!-- AI SUMMARY CARD -->
+                            <div class="card ai-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-brain"></i> <span data-i18n="title_ai_insights">AI Money Insights</span></h3>
+                                    <span class="badge-ai"><i class="fa-solid fa-sparkles"></i> Active</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="ai-insights-grid" id="ai-insights-grid">
+                                        <!-- Dynamic AI Cards -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI POLITE REMINDER GENERATOR -->
+                            <div class="card ai-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="title_ai_generator">AI Polite Reminder Generator</span></h3>
+                                </div>
+                                <div class="card-body">
+                                    <p class="section-desc" data-i18n="desc_ai_generator">Generate polite, non-aggressive reminder message templates tailored for college friends.</p>
+                                    
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="ai-friend-select" data-i18n="lbl_select_friend">Select Friend / Loan:</label>
+                                            <select id="ai-friend-select">
+                                                <option value="">-- Choose a friend who owes money --</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="ai-tone-select" data-i18n="lbl_select_tone">Choose Message Tone:</label>
+                                            <select id="ai-tone-select">
+                                                <option value="polite">Polite & Friendly (Recommended)</option>
+                                                <option value="casual">Casual College Bro / Friend</option>
+                                                <option value="formal">Formal & Clear</option>
+                                                <option value="urgent">Direct & Gentle Urgent</option>
+                                                <option value="funny">Funny & Lighthearted</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn-primary full-width margin-top-sm" id="generate-ai-msg-btn">
+                                        <i class="fa-solid fa-bolt"></i> <span data-i18n="btn_generate_msg">Generate Reminder Message</span>
+                                    </button>
+
+                                    <!-- GENERATED OUTPUT AREA -->
+                                    <div class="ai-output-box" id="ai-output-box" style="display:none;">
+                                        <div class="ai-output-header">
+                                            <span><i class="fa-solid fa-message"></i> Generated Message Preview:</span>
+                                            <span class="tone-badge" id="current-tone-badge">Polite</span>
+                                        </div>
+                                        <div class="ai-output-text" id="ai-generated-text"></div>
+                                        <div class="ai-output-actions">
+                                            <button class="btn-secondary" id="copy-ai-msg-btn">
+                                                <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy_msg">Copy Message</span>
+                                            </button>
+                                            <button class="btn-whatsapp" id="whatsapp-ai-msg-btn">
+                                                <i class="fa-brands fa-whatsapp"></i> Send on WhatsApp
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT COLUMN: INTERACTIVE AI MONEYBOT CHAT -->
+                        <div class="ai-right-col">
+                            <div class="card chat-card">
+                                <div class="card-header chat-header">
+                                    <div class="chat-bot-info">
+                                        <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
+                                        <div>
+                                            <h4>MoneyBot AI Assistant</h4>
+                                            <span class="bot-status"><span class="status-dot"></span> Local Rule Engine Ready</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-icon" id="clear-chat-btn" title="Clear Chat History">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+
+                                <div class="chat-messages" id="chat-messages">
+                                    <div class="message bot-message">
+                                        <div class="message-content">
+                                            <p>👋 Hi! I'm <strong>MoneyBot</strong>, your AI loan analyst. Ask me anything about who owes you, total amounts, overdue debts, or repayment stats!</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- QUICK CHAT SUGGESTIONS -->
+                                <div class="chat-suggestions">
+                                    <button class="suggestion-chip" data-prompt="Who owes me the most?">Who owes me most?</button>
+                                    <button class="suggestion-chip" data-prompt="How much money should I collect?">Total to collect?</button>
+                                    <button class="suggestion-chip" data-prompt="Who is overdue?">Who is overdue?</button>
+                                    <button class="suggestion-chip" data-prompt="How much did I lend this month?">Lent this month?</button>
+                                </div>
+
+                                <div class="chat-input-area">
+                                    <input type="text" id="chat-input" placeholder="Ask a question about your loans..." autocomplete="off">
+                                    <button class="btn-primary btn-icon" id="send-chat-btn">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: ADD / EDIT LOAN -->
+    <div class="modal-overlay" id="loan-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-loan-title"><i class="fa-solid fa-plus-circle"></i> Add New Loan</h3>
+                <button class="modal-close-btn" id="close-loan-modal-btn">&times;</button>
+            </div>
+            <form id="loan-form">
+                <input type="hidden" id="loan-id-input">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="friend-name-input">Friend's Name <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="friend-name-input" placeholder="e.g. Rahul Sharma" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone-input">Phone Number (Optional)</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-phone"></i>
+                            <input type="tel" id="phone-input" placeholder="e.g. 9876543210">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount-input">Amount Lent (₹) <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                            <input type="number" id="amount-input" min="1" step="any" placeholder="e.g. 750" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date-lent-input">Date Lent <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            <input type="date" id="date-lent-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="due-date-input">Expected Repayment Date <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            <input type="date" id="due-date-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="reason-input">Reason <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-comment-dots"></i>
+                            <input type="text" id="reason-input" placeholder="e.g. Canteen bill, Movie ticket, Semester books..." required>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="notes-input">Notes (Optional)</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-sticky-note"></i>
+                            <input type="text" id="notes-input" placeholder="e.g. Promised to pay after getting allowance">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancel-loan-modal-btn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="save-loan-btn">
+                        <i class="fa-solid fa-check"></i> Save Loan Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL 2: RECORD PAYMENT -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-receipt"></i> Record Payment</h3>
+                <button class="modal-close-btn" id="close-payment-modal-btn">&times;</button>
+            </div>
+            <form id="payment-form">
+                <input type="hidden" id="payment-loan-id">
+                
+                <div class="payment-summary-box" id="payment-summary-box">
+                    <p>Borrower: <strong id="payment-friend-name">...</strong></p>
+                    <p>Remaining Balance: <strong class="text-danger" id="payment-remaining-bal">₹0</strong></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-amount-input">Payment Amount Received (₹) <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                        <input type="number" id="payment-amount-input" min="1" step="any" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-date-input">Payment Date <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <input type="date" id="payment-date-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-note-input">Note / Payment Method (Optional)</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-note-sticky"></i>
+                        <input type="text" id="payment-note-input" placeholder="e.g. UPI (GPay/PhonePe), Cash...">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancel-payment-modal-btn">Cancel</button>
+                    <button type="submit" class="btn-success">
+                        <i class="fa-solid fa-circle-check"></i> Record Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL 3: FRIEND PROFILE HISTORY -->
+    <div class="modal-overlay" id="friend-profile-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-circle"></i> Friend Profile & History</h3>
+                <button class="modal-close-btn" id="close-profile-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="friend-profile-card" id="friend-profile-summary">
+                    <!-- Dynamic header stats for friend -->
+                </div>
+
+                <h4 class="margin-top-md"><i class="fa-solid fa-folder-closed"></i> Loan History</h4>
+                <div class="friend-loans-list margin-top-xs" id="friend-loans-list">
+                    <!-- Dynamic loans list for this friend -->
+                </div>
+
+                <h4 class="margin-top-md"><i class="fa-solid fa-clock-rotate-left"></i> Payment Log Timeline</h4>
+                <div class="timeline-container margin-top-xs" id="friend-timeline">
+                    <!-- Dynamic payment timeline -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="close-profile-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL 4: DELETE CONFIRMATION -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal-card modal-sm">
+            <div class="modal-header text-danger">
+                <h3><i class="fa-solid fa-triangle-exclamation"></i> Delete Confirmation</h3>
+                <button class="modal-close-btn" id="close-delete-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the loan record for <strong id="delete-friend-name">...</strong>?</p>
+                <p class="text-muted text-sm margin-top-xs">This action cannot be undone. All payment logs for this loan will be removed.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancel-delete-btn">Cancel</button>
+                <button type="button" class="btn-danger" id="confirm-delete-btn">
+                    <i class="fa-solid fa-trash-can"></i> Yes, Delete Loan
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL 5: ABOUT THIS PROJECT (AI WORKSHOP PRESENTATION) -->
+    <div class="modal-overlay" id="about-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-graduation-cap"></i> About This Project (AI Workshop Demo)</h3>
+                <button class="modal-close-btn" id="close-about-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="workshop-box">
+                    <div class="workshop-item">
+                        <h4><i class="fa-solid fa-triangle-exclamation text-warning"></i> The Problem</h4>
+                        <p>College students frequently lend small sums of money to friends (canteen, notes, trips). Over time, they forget who owes them, the exact balances, or due dates, causing unnecessary awkwardness.</p>
+                    </div>
+
+                    <div class="workshop-item">
+                        <h4><i class="fa-solid fa-lightbulb text-success"></i> The Solution</h4>
+                        <p><strong>Friend Money Tracker</strong> provides a clean digital dashboard to record loans, track partial repayments automatically, send non-aggressive reminders, and keep full borrower profile histories.</p>
+                    </div>
+
+                    <div class="workshop-item">
+                        <h4><i class="fa-solid fa-robot text-primary"></i> The AI Component</h4>
+                        <p>Integrated rule-based AI financial intelligence that calculates collection ratios, analyzes risks, generates customized polite reminder templates, and provides interactive Q&A. Structured modularly for instant OpenAI / Gemini API integration!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-primary" id="close-about-btn">Got It!</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL 6: BACKUP / RESTORE DATA -->
+    <div class="modal-overlay" id="backup-modal">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-database"></i> Backup & Restore Data</h3>
+                <button class="modal-close-btn" id="close-backup-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm">Manage your data locally. Export your loan history to JSON or restore from backup.</p>
+                
+                <div class="backup-actions margin-top-md">
+                    <button class="btn-primary full-width" id="export-json-btn">
+                        <i class="fa-solid fa-download"></i> Export Data to JSON
+                    </button>
+                    
+                    <div class="margin-top-sm">
+                        <label for="import-json-file" class="btn-secondary full-width text-center" style="cursor:pointer; display:block;">
+                            <i class="fa-solid fa-upload"></i> Import Data from JSON
+                        </label>
+                        <input type="file" id="import-json-file" accept=".json" style="display:none;">
+                    </div>
+
+                    <button class="btn-secondary full-width margin-top-md" id="reset-sample-data-btn">
+                        <i class="fa-solid fa-rotate-left"></i> Reload 7 Sample Workshop Loans
+                    </button>
+
+                    <button class="btn-outline-danger full-width margin-top-xs" id="clear-all-data-btn">
+                        <i class="fa-solid fa-trash"></i> Clear All Data
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="close-backup-btn">Done</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JS APP -->
+    <script src="script.js"></script>
+</body>
+</html>
